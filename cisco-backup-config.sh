@@ -30,10 +30,12 @@
 
 
 ## Purpose
-# The purpose of this script is to initiate a transfer of the running and
-# startup configurations from a list of Cisco devices using SNMP. This does not
-# require a configuration on the Cisco devices except for a writable SNMP group.
-# Below are Cisco configuration examples to help you get started.
+# The purpose of this script is to initiate a file transfer of the running
+# and/or startup configurations to a remote server from a list of Cisco devices.
+# In addtion to the network file transfer, the running configuration can be
+# copied to the startup-config on the device(s). This script only requires a
+# writable SNMP group on the Cisco device(s). Below are Cisco configuration
+# examples to help you get started.
 #
 
 
@@ -52,6 +54,15 @@
 #     restricted user which only has access to these configuration files. At the
 #     very least this script should be protected by using "chmod 600" and owned
 #     by root to prevent access to the stored SSH password.
+#
+# There are three actions that can be configured for either mode. These actions
+# control which configuration to backup on the Cisco device and whether or not
+# to write the running configuration to the startup configuration. The order of
+# execution of these actions is to backup the startup configuration first, then
+# to backup the running configuration, and lastly to write the running
+# configuration to the startup configuration. The variables to control these
+# actions are: '_action_copy_startup', '_action_copy_running_to_startup', and
+# '_action_copy_running' which take '1' as the value to run that action.
 #
 # Commands:
 #   cisco-backup-configs.sh
@@ -107,8 +118,12 @@
 # script. The system receiving the configuration must have a ssh or tftp server
 # running.
 #
-# This was tested on FreeBSD, CentOS, and Debian. On Windows, tftpd32 was
-# successfully tested to receive the configuration files.
+# The Cisco device(s) need a writable SNMP group, and network access to the
+# system running this script and also to the system receiving the configurations
+# (if different).
+#
+# This has been tested on FreeBSD, CentOS, and Debian. On Windows, tftpd32 was
+# successfully tested to receive the configuration files in the insecure mode.
 #
 
 
