@@ -152,7 +152,8 @@ _tftp_startup_config_file_path="cisco-configs"	# Relative path without ending "/
 _snmp_rw_comm="orgRW"							# This must be a group with write access
 
 # Secure Settings - uses SNMP v3 and SCP/SSH
-# If storing a ssh password in this file, make sure to chmod 600 the file.
+# If storing a ssh password in this file, make sure to 'chmod u=x' the file, if
+# not at least removing permissions for the group and others by 'chmod go-rwe'.
 _scp_snmpv3_user="BACKUPUSER"
 _scp_snmpv3_user_passphrase="USERPASS"			# Tested up to 16 characters
 _scp_snmpv3_level="authPriv"					# Options: noAuthNoPriv|authNoPriv|authPriv
