@@ -25,7 +25,7 @@
 
 
 
-# cisco-config-backup.sh version 0.1 by Justin D Holcomb
+_version="cisco-config-backup.sh version 0.2 by Justin D Holcomb"
 
 
 
