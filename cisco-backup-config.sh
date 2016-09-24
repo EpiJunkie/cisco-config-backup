@@ -171,14 +171,15 @@ _tmp_file=`grep -v -E '^#.*|^$' $_devices_text_file > /tmp/$_uuid`
 
 
 
-## Functions
-# Runs SNMP commands over version 1 to initiate a TFTP copy of the startup and running configuration.
 # Check if snmpset is available and exit if not.
 snmpset -V >/dev/null 2>&1
 [ "$?" != 0 ] && echo "[ERROR] Unable to find 'snmpset' binary on system in \$PATH, exitting prematurely." && exit 1
 
 
 
+# Functions
+## Insecure functions
+### Runs SNMP commands over version 1 to initiate a TFTP copy of the startup and running configuration.
 __function_run_tftp() {
 
 	echo "Running Cisco backup configuration for $_organization devices over TFTP and SNMP v1."
@@ -266,6 +267,7 @@ __function_run_tftp() {
 	__function_stage2_erase_mib_tftp
 }
 
+### Erases MIB setttings from device. This is required as kicking off another action is not possible.
 __function_stage2_erase_mib_tftp() {
 
 	echo "Erasing SNMP MIBs for Cisco backup configuration."
@@ -301,7 +303,10 @@ __function_stage2_erase_mib_tftp() {
 	done </tmp/$_uuid
 }
 
-# Runs SNMP over version 3 using authentication and encryption to initiate a SCP copy of the startup and running configuration.
+
+
+## Secure functions
+### Runs SNMP over version 3 using authentication and encryption to initiate a SCP copy of the startup and running configuration.
 __function_run_scp() {
 
 	echo "Running Cisco backup configuration for $_organization devices over SCP and SNMP v3."
@@ -397,7 +402,7 @@ __function_run_scp() {
 	__function_stage2_erase_mib_scp
 }
 
-# Stage 2 to erase
+### Stage 2 to erase
 __function_stage2_erase_mib_scp() {
 
 	echo "Erasing SNMP MIBs for Cisco backup configuration."
