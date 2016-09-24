@@ -281,13 +281,13 @@ __function_stage2_erase_mib_tftp() {
 		[ $? != 0 ] && echo "$_device_hostname was not pingable at $_device_ip, one attempt were made." && continue
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.111 i 6
+		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.111 i 6 >/dev/null 2>&1
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 115
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.115 i 6 >/dev/null 2>&1
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 6
+		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 6 >/dev/null 2>&1
 
 		_device_ip=""
 		_device_hostname=""
@@ -411,13 +411,13 @@ __function_stage2_erase_mib_scp() {
 		[ $? != 0 ] && echo "$_device_hostname was not pingable at $_device_ip, one attempt was made." && continue
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 112
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.112 i 6
+		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.112 i 6 >/dev/null 2>&1
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 116
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.116 i 6 >/dev/null 2>&1
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 129
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.129 i 6
+		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.129 i 6 >/dev/null 2>&1
 
 		_device_ip=""
 		_device_hostname=""
@@ -432,12 +432,12 @@ __function_find_ip() {
 		echo "Missing IP field (2nd field, space separated.) in $_devices_text_file for $_device_hostname. Checking to see if it can be resolved..."
 
 		# Check to see if dig is available on system.
-		dig -v
+		dig -v >/dev/null 2>&1
 		if [ "$?" = 0 ]; then
 			_device_ip="$( dig +short -t a $_device_hostname )"
 		else
 			echo "dig not installed on system, checking for drill..."
-			drill -v
+			drill -v >/dev/null 2>&1
 			if [ "$?" = 0 ]; then
 				_device_ip="$( drill $_device_hostname | grep -A1 ";; ANSWER SECTION:" | tail -n1 | awk '{ print $5 }' | grep -o -E '^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$' )"
 			else
