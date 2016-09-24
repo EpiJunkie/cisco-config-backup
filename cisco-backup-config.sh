@@ -142,7 +142,7 @@
 _devices_text_file='/usr/local/lib/network_devices.txt'
 _organization="Your organization name"
 _date=`date +%Y%m%d`
-_mode="insecure"           # Options: insecure|secure
+_mode="insecure"                        # Options: insecure|secure
 _action_copy_startup="1"                # Options: 0|1
 _action_copy_running_to_startup="1"     # Options: 0|1
 _action_copy_running="1"                # Options: 0|1
@@ -298,13 +298,13 @@ __function_stage2_erase_mib_tftp() {
 		ping -c 1 ${_device_ip} >/dev/null 2>&1
 		[ $? != 0 ] && echo "$_device_hostname was not pingable at $_device_ip, one attempt were made." && continue
 
-		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB
+		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 111
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.111 i 6 >/dev/null 2>&1
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 115
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.115 i 6 >/dev/null 2>&1
 
-		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB
+		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 128
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 6 >/dev/null 2>&1
 
 		echo "done."
