@@ -48,7 +48,7 @@
 #
 #   "secure" mode intiates the configuration of the transfer over SNMP version 3
 #     over an authenticated and encrypted channel. Then the transfer occurs over
-#     SCP which is also encrypted.The SSH user and password should be a
+#     SCP which is also encrypted. The SSH user and password should be a
 #     restricted user which only has access to these configuration files. At the
 #     very least this script should be protected by using "chmod 600" and owned
 #     by root to prevent access to the stored SSH password.
