@@ -143,6 +143,7 @@ _devices_text_file='/usr/local/lib/network_devices.txt'
 _organization="Your organization name"
 _date=`date +%Y%m%d`
 _mode="insecure"           # Options: insecure|secure
+_action_copy_startup="1"                # Options: 0|1
 _action_copy_running_to_startup="1"     # Options: 0|1
 _action_copy_running="1"                # Options: 0|1
 
@@ -205,45 +206,48 @@ __function_run_tftp() {
 		ping -c 1 ${_device_ip} >/dev/null 2>&1
 		[ $? != 0 ] && echo "$_device_hostname was not pingable at $_device_ip, one attempt was made." && continue
 
-
-
-
-
-
-
-
 	   # Copy startup config
-		# The ConfigCopyProtocol is set to TFTP
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.2.128 i 1
+		if [ "$_action_copy_startup" = 1 ]; then
+			echo "   copying startup-config via TFTP."
+
+			# The ConfigCopyProtocol is set to TFTP
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.2.128 i 1
+
+			# Set the SourceFileType to startup-config
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.3.128 i 3
+
+			# Set the DestinationFileType to networkfile
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.4.128 i 1
+
+			# Sets the ServerAddress to the IP address of the TFTP server
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.5.128 a ${_tftp_ip}
+
+			# Sets the CopyFilename to your desired file name.
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.6.128 s ${_tftp_startup_config_file_path}/${_filename}
+
+			# Sets the CopyStatus to active which starts the copy process.
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 1
+		fi
+
 	   # Copy running config
 		if [ "$_action_copy_running" = 1 ]; then
 			echo "   copying running-config via TFTP."
 
-		# Set the SourceFileType to startup-config
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.3.128 i 3
 			# The ConfigCopyProtocol is set to TFTP
 			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.2.111 i 1
 
-		# Set the DestinationFileType to networkfile
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.4.128 i 1
 			# Set the SourceFileType to running-config
 			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.3.111 i 4
 
 			# Set the DestinationFileType to networkfile
 			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.4.111 i 1
 
-		# Sets the ServerAddress to the IP address of the TFTP server
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.5.128 a ${_tftp_ip}
 			# Sets the ServerAddress to the IP address of the TFTP server
 			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.5.111 a ${_tftp_ip}
 
-		# Sets the CopyFilename to your desired file name.
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.6.128 s ${_tftp_startup_config_file_path}/${_filename}
 			# Sets the CopyFilename to your desired file name.
 			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.6.111 s ${_tftp_running_config_file_path}/${_filename}
 
-		# Sets the CopyStatus to active which starts the copy process.
-		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 1
 			# Sets the CopyStatus to active which starts the copy process.
 			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.111 i 1
 		fi
@@ -336,18 +340,35 @@ __function_run_scp() {
 		ping -c 1 ${_device_ip} >/dev/null 2>&1
 		[ $? != 0 ] && echo "$_device_hostname was not pingable at $_device_ip, one attempt were made." && continue
 
+	   # Copy startup config to SCP
+		if [ "$_action_copy_startup" = 1 ]; then
+			echo "   copying startup-config via SCP."
 
+			# The ConfigCopyProtocol is set to SCP
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.2.129 i 4
 
+			# Set the SourceFileType to startup-config
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.3.129 i 3
 
+			# Set the DestinationFileType to networkfile
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.4.129 i 1
 
+			# Sets the ServerAddress to the IP address of the SCP server
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.5.129 a ${_scp_ssh_ip_addr}
 
+			# Sets the Usernanme to use on the SCP server
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.7.129 s ${_scp_ssh_user}
 
+			# Sets the password to use on the SCP server
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.8.129 s ${_scp_ssh_password}
 
+			# Sets the CopyFilename to your desired file name.
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.6.129 s ${_scp_startup_config_file_path}/${_filename}
 
+			# Sets the CopyStatus to active which starts the copy process.
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.129 i 1
+		fi
 
-	   # Copy startup config
-		# The ConfigCopyProtocol is set to SCP
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.2.129 i 4
 	   # Copy running config to SCP
 		if [ "$_action_copy_running" = 1 ]; then
 			echo "   copying running-config via SCP."
@@ -361,18 +382,12 @@ __function_run_scp() {
 			# Set the DestinationFileType to networkfile
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.4.112 i 1
 
-		# Set the SourceFileType to startup-config
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.3.129 i 3
 			# Sets the ServerAddress to the IP address of the SCP server
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.5.112 a ${_scp_ssh_ip_addr}
 
-		# Set the DestinationFileType to networkfile
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.4.129 i 1
 			# Sets the Usernanme to use on the SCP server
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.7.112 s ${_scp_ssh_user}
 
-		# Sets the ServerAddress to the IP address of the SCP server
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.5.129 a ${_scp_ssh_ip_addr}
 			# Sets the password to use on the SCP server
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.8.112 s ${_scp_ssh_password}
 
@@ -383,24 +398,16 @@ __function_run_scp() {
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.112 i 1
 		fi
 
-		# Sets the Usernanme to use on the SCP server
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.7.129 s ${_scp_ssh_user}
 	   # Copy running-config to startup-config
 		if [ "$_action_copy_running_to_startup" = 1 ]; then
 			echo "   copying running-config to startup-confg."
 
-		# Sets the password to use on the SCP server
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.8.129 s ${_scp_ssh_password}
 			# Set the SourceFileType to running-config
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.3.116 i 4
 
-		# Sets the CopyFilename to your desired file name.
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.6.129 s ${_scp_startup_config_file_path}/${_filename}
 			# Set the DestinationFileType to startup-config
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.4.116 i 3
 
-		# Sets the CopyStatus to active which starts the copy process.
-		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.129 i 1
 			# Sets the CopyStatus to active which starts the copy process.
 			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.116 i 1
 		fi
