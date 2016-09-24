@@ -292,7 +292,7 @@ __function_stage2_erase_mib_tftp() {
 
 		__function_find_ip
 
-		echo "Erasing SNMP MIBs on $_device_hostname at ${_device_ip}... "
+		echo -n "   on $_device_hostname at ${_device_ip}... "
 
 		# Check to see if host is up
 		ping -c 1 ${_device_ip} >/dev/null 2>&1
@@ -306,6 +306,8 @@ __function_stage2_erase_mib_tftp() {
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 6 >/dev/null 2>&1
+
+		echo "done."
 
 		_device_ip=""
 		_device_hostname=""
@@ -421,6 +423,9 @@ __function_run_scp() {
 	done </tmp/$_uuid
 
 	__function_stage2_erase_mib_scp
+
+	echo "Done erasing SNMP MIBs for Cisco backup configuration."
+	echo "Done backing up Cisco configurations."
 }
 
 ### Stage 2 to erase
@@ -436,7 +441,7 @@ __function_stage2_erase_mib_scp() {
 		# Get hostname from line
 		_device_hostname="$( echo $_device_line | awk '{ print $1 }' )"
 
-		echo "Erasing SNMP MIBs on $_device_hostname at ${_device_ip}... "
+		echo -n "   on $_device_hostname at ${_device_ip}... "
 
 		# Check to see if host is up
 		ping -c 1 ${_device_ip} >/dev/null 2>&1
@@ -450,6 +455,8 @@ __function_stage2_erase_mib_scp() {
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 129
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.129 i 6 >/dev/null 2>&1
+
+		echo "done."
 
 		_device_ip=""
 		_device_hostname=""
@@ -485,6 +492,7 @@ __function_find_ip() {
 __function_parse() {
 
 	# Print date for log
+	echo ""
 	echo -n "Date: "
 	date
 
