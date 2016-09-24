@@ -20,11 +20,11 @@ cisco-backup-config.sh insecure|secure erase
 
 The first command uses the variable `_mode` to determine the mode to run in. The second command uses the user input to determine the mode to run in. The last command above erases the MIB created for that mode, this is normally done at the end of each run but may be required to run independently for debugging purposes.
 
-To run a daily cron at midnight run:
+To run a daily cron at 3am run:
 
 ```
 root@unix-host:~ # crontab -e
-0 0 * * * /root/cisco-backup-config.sh >> /var/logs/cisco-config-backup.log 2>&1
+0 3 * * * /root/cisco-backup-config.sh >> /var/logs/cisco-config-backup.log 2>&1
 ```
 
 ## Cisco Example Config:

@@ -66,10 +66,10 @@
 # purposes. The last command displays the table above as well as which actions
 # to take and the default mode to run in.
 #
-# To run a daily cron at midnight run:
+# To run a daily cron at 3am run:
 #
 #   root@unix-host:~ # crontab -e
-#     0 0 * * * /root/cisco-backup-config.sh >> /var/logs/cisco-config-backup.log 2>&1
+#     0 3 * * * /root/cisco-backup-config.sh >> /var/logs/cisco-config-backup.log 2>&1
 #
 
 
@@ -122,15 +122,15 @@
 # OS. Blank lines and lines starting with an octothrop "#" are ignored.
 # Example:
 #
-# # Site 1
-# router01 10.0.0.1
-# switch01 10.0.0.2
-# switch02 10.0.0.3
+#             # Site 0
+#             router01 10.0.0.1
+#             switch01 10.0.0.2
+#             switch02 10.0.0.3
 #
-# # Site 2
-# router11 10.0.1.1
-# switch11 10.0.1.2
-# switch12 10.0.1.3
+#             # Site 1
+#             router11 10.0.1.1
+#             switch11 10.0.1.2
+#             switch12 10.0.1.3
 #
 
 
