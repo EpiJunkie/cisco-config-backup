@@ -57,12 +57,14 @@
 #   cisco-backup-configs.sh
 #   cisco-backup-configs.sh insecure|secure
 #   cisco-backup-configs.sh insecure|secure erase
+#   cisco-backup-configs.sh -h|--help|help
 #
 # The first command uses the variable `_mode` to determine the mode to run in.
 # The second command uses the user input to determine the mode to run in. The
 # last command above erases the MIB created for that mode, this is normally done
 # at the end of each run but may be required to run independently for debugging
-# purposes.
+# purposes. The last command displays the table above as well as which actions
+# to take and the default mode to run in.
 #
 # To run a daily cron at midnight run:
 #
@@ -454,8 +456,13 @@ __function_parse() {
 	echo -n "Date: "
 	date
 
+	# Run help immediately.
+	if [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+		__function_run_help
+		exit
+
 	# Runs using the variable "_mode" when no user input is given.
-	if [ -z "$1" ]; then
+	elif [ -z "$1" ]; then
 		if [ "$_mode" = "insecure" ]; then
 			__function_run_tftp
 		elif [ "$_mode" = "secure" ]; then
@@ -492,6 +499,27 @@ __function_parse() {
 		echo "Unrecognized command."
 		exit 1
 	fi
+}
+
+# Display help
+__function_run_help() {
+	echo "$_version"
+	echo "Usage:"
+	echo "  $0"
+	echo "  $0 secure|insecure"
+	echo "  $0 secure|insecure erase"
+	echo "  $0 -h|--help|help"
+	echo "This script copies the running and startup config on Cisco"
+	echo "devices via SNMP over TFTP or SCP. Optionally the running"
+	echo "configuration can be copied to the startup configuration as"
+	echo "well."
+	echo "The following variables are set:"
+	echo "    \$_action_copy_startup is set to $_action_copy_startup"
+	echo "    \$_action_copy_running_to_startup is set to: $_action_copy_running_to_startup"
+	echo "    \$_action_copy_running is set to: $_action_copy_running"
+	echo "Default security mode: $_mode"
+	echo "More variables are set within the script, please edit to"
+	echo "meet system configuration needs."
 }
 
 # Kicks off execution of code
