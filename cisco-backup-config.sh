@@ -141,6 +141,7 @@ _devices_text_file='/usr/local/lib/network_devices.txt'
 _organization="Your organization name"
 _date=`date +%Y%m%d`
 _mode="insecure"           # Options: insecure|secure
+_action_copy_running_to_startup="1"     # Options: 0|1
 
 # Insecure Settings - uses SNMP v1 and TFTP
 _tftp_ip="10.0.0.250"							# This must be an IP address
@@ -232,6 +233,20 @@ __function_run_tftp() {
 		# Sets the CopyStatus to active which starts the copy process.
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 1
 
+	   # Copy running-config to startup-config
+		if [ "$_action_copy_running_to_startup" = 1 ]; then
+			echo "   copying running-config to startup-confg."
+
+			# Set the SourceFileType to running-config
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.3.115 i 4
+
+			# Set the DestinationFileType to startup-config
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.4.115 i 3
+
+			# Sets the CopyStatus to active which starts the copy process.
+			snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.115 i 1
+		fi
+
 		echo "done."
 		echo ""
 		echo ""
@@ -265,6 +280,9 @@ __function_stage2_erase_mib_tftp() {
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.111 i 6
+
+		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 115
+		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.115 i 6 >/dev/null 2>&1
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB
 		snmpset -Cq -v 1 -c ${_snmp_rw_comm} ${_device_ip} 1.3.6.1.4.1.9.9.96.1.1.1.1.14.128 i 6
@@ -340,15 +358,25 @@ __function_run_scp() {
 
 		# Sets the Usernanme to use on the SCP server
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.7.129 s ${_scp_ssh_user}
+	   # Copy running-config to startup-config
+		if [ "$_action_copy_running_to_startup" = 1 ]; then
+			echo "   copying running-config to startup-confg."
 
 		# Sets the password to use on the SCP server
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.8.129 s ${_scp_ssh_password}
+			# Set the SourceFileType to running-config
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.3.116 i 4
 
 		# Sets the CopyFilename to your desired file name.
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.6.129 s ${_scp_startup_config_file_path}/${_filename}
+			# Set the DestinationFileType to startup-config
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.4.116 i 3
 
 		# Sets the CopyStatus to active which starts the copy process.
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.129 i 1
+			# Sets the CopyStatus to active which starts the copy process.
+			snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.116 i 1
+		fi
 
 		echo "done."
 		echo ""
@@ -382,6 +410,9 @@ __function_stage2_erase_mib_scp() {
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 112
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.112 i 6
+
+		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 116
+		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.116 i 6 >/dev/null 2>&1
 
 		# Sets the CopyStatus to delete which cleans all saved informations out of the MIB 129
 		snmpset -Cq -v 3 -u ${_scp_snmpv3_user} -l ${_scp_snmpv3_level} -a ${_scp_snmpv3_auth_protocol} -A ${_scp_snmpv3_user_passphrase} -x ${_scp_snmpv3_privacy_protocol} -X ${_scp_snmpv3_privacy_passphrase} ${_device_ip}  1.3.6.1.4.1.9.9.96.1.1.1.1.14.129 i 6
