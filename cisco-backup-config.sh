@@ -510,6 +510,9 @@ __function_parse() {
 		echo "Unrecognized command."
 		exit 1
 	fi
+
+	# Delete temporary network list if it exists
+	[ -e "/tmp/$_uuid" ] && rm -f /tmp/$_uuid
 }
 
 # Display help
